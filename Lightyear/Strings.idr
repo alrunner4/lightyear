@@ -177,18 +177,13 @@ semiSep p = p `sepBy` semi
 |||
 ||| Primarily useful for collecting single line comments and other
 ||| similar verbatim environments.
-manyTill : Monad m => ParserT String m a
-                   -> ParserT String m b
-                   -> ParserT String m (List a)
-manyTill p end = scan
-  where
-    scan : Monad m => ParserT String m (List a)
-    scan = do { end; pure List.Nil } <|>
-           do { x <- p; xs <- scan; pure (x::xs)}
+manyUntil : Monad m => ParserT String m a
+                    -> ParserT String m b
+                    -> ParserT String m (List a)
+manyUntil p end = ( end *> pure Nil ) <|> do { x <- p; xs <- manyUntil p end; pure ( x :: xs ) }
 
 
 -- -------------------------------------------------------- [ Testing Function ]
-
 testParser : Parser a -> String -> IO (Maybe a)
 testParser p s = case parse p s of
   Left  e => putStrLn e *> pure Nothing
